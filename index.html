@@ -1,22 +1,105 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Meadow Draw — Collaborative Flowers</title>
-  <link rel="stylesheet" href="styles.css" />
-  <script type="module" src="app.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stardoodle Chime</title>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #dff1ff, #ffeaf4);
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    canvas {
+      background-color: transparent;
+    }
+
+    h1 {
+      position: absolute;
+      top: 20px;
+      width: 100%;
+      text-align: center;
+      color: #6b6b83;
+      font-size: 1.8em;
+      letter-spacing: 1px;
+    }
+  </style>
 </head>
 <body>
-  <div id="ui">
-    <input id="roomId" placeholder="Room (e.g. meadow1)" value="meadow1"/>
-    <button id="joinBtn">Join</button>
-    <label>Color <input type="color" id="color" value="#2b9348"/></label>
-    <label>Brush <input id="size" type="range" min="1" max="40" value="4"/></label>
-    <button id="clearBtn">Clear</button>
-    <button id="saveBtn">Save</button>
-    <span id="status">Not connected</span>
-  </div>
-  <canvas id="canvas"></canvas>
+  <h1>🌙 Stardoodle Chime — Make a Wish 🌸</h1>
+  <canvas id="artCanvas" width="800" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById("artCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Chime position
+    const chimeX = canvas.width / 2;
+    const chimeY = 200;
+    let sway = 0;
+
+    // Animate chime swaying gently
+    function drawChime() {
+      ctx.save();
+      ctx.translate(chimeX, chimeY);
+      ctx.rotate(Math.sin(sway) * 0.1);
+
+      // Top circle (chime base)
+      ctx.beginPath();
+      ctx.arc(0, 0, 30, 0, Math.PI * 2);
+      ctx.fillStyle = "#f9d6ff";
+      ctx.fill();
+      ctx.closePath();
+
+      // String
+      ctx.beginPath();
+      ctx.moveTo(0, 30);
+      ctx.lineTo(0, 100);
+      ctx.strokeStyle = "#ccc";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Wind catcher
+      ctx.beginPath();
+      ctx.rect(-15, 100, 30, 40);
+      ctx.fillStyle = "#c1d4ff";
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // Draw clouds (user doodles)
+    let drawing = false;
+    let color = "rgba(255, 255, 255, 0.7)";
+
+    canvas.addEventListener("mousedown", () => (drawing = true));
+    canvas.addEventListener("mouseup", () => (drawing = false));
+    canvas.addEventListener("mousemove", drawCloud);
+
+    function drawCloud(e) {
+      if (!drawing) return;
+      const x = e.offsetX;
+      const y = e.offsetY;
+      ctx.beginPath();
+      ctx.arc(x, y, 20, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+    }
+
+    // Animation loop
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawChime();
+      sway += 0.02;
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
 </body>
 </html>
