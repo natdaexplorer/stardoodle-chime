@@ -5,8 +5,8 @@ window.onload = () => {
   const ctx = canvas.getContext("2d");
   const pond = new Image();
   
-  // Updated image path
-  pond.src = "pond.png";
+  // Use the absolute path to ensure it loads on GitHub Pages
+  pond.src = "https://natdaexplorer.github.io/ponderingpond/pond.png";
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
