@@ -5,8 +5,8 @@ window.onload = () => {
   const ctx = canvas.getContext("2d");
   const pond = new Image();
   
-  // Correct image path
-  pond.src = "./images/pond.png";
+  // Updated image path
+  pond.src = "pond.png";
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -44,7 +44,7 @@ window.onload = () => {
     }
 
     // Floating side position (more to the left for interactive frame)
-    const offsetX = width * 0.15; // shifted further left
+    const offsetX = width * 0.15;
     const offsetY = height / 2 - pondHeight / 2 + Math.sin(Date.now() / 1000) * 8;
 
     // Slight vibrant effect
