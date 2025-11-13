@@ -25,34 +25,33 @@ window.onload = () => {
     console.error("Failed to load pond image. Check the file path.");
   };
 
-  function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const { width, height } = canvas;
+ function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const { width, height } = canvas;
 
-    // Background: light cream color
-    ctx.fillStyle = "#FFF9F0";
-    ctx.fillRect(0, 0, width, height);
+  // Background: light cream color
+  ctx.fillStyle = "#FFF9F0";
+  ctx.fillRect(0, 0, width, height);
 
-    // Maintain original image proportions
-    const ratio = pond.width / pond.height;
-    let pondWidth = Math.min(width * 0.5, pond.width);
-    let pondHeight = pondWidth / ratio;
+  // Maintain original image proportions
+  const ratio = pond.width / pond.height;
+  let pondWidth = Math.min(width * 0.5, pond.width);
+  let pondHeight = pondWidth / ratio;
 
-    if (pondHeight > height * 0.8) {
-      pondHeight = height * 0.8;
-      pondWidth = pondHeight * ratio;
-    }
-
-    // Floating side position (more to the left for interactive frame)
-    const offsetX = width * 0.15;
-    const offsetY = height / 2 - pondHeight / 2 + Math.sin(Date.now() / 1000) * 8;
-
-    // Slight vibrant effect
-    ctx.filter = "saturate(1.2) contrast(1.05)";
-    ctx.drawImage(pond, offsetX, offsetY, pondWidth, pondHeight);
-    ctx.filter = "none";
-
-    requestAnimationFrame(animate);
+  if (pondHeight > height * 0.8) {
+    pondHeight = height * 0.8;
+    pondWidth = pondHeight * ratio;
   }
-};
+
+  // Floating side position (more to the left)
+  const offsetX = width * 0.15;
+  const offsetY = height / 2 - pondHeight / 2 + Math.sin(Date.now() / 700) * 12;
+
+  // Slight vibrant effect
+  ctx.filter = "saturate(1.2) contrast(1.05)";
+  ctx.drawImage(pond, offsetX, offsetY, pondWidth, pondHeight);
+  ctx.filter = "none";
+
+  requestAnimationFrame(animate);
+}
 </script>
