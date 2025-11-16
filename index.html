@@ -16,12 +16,6 @@ body {
 h1 {
     font-size: 48px;
     color: #1f4d2d;
-    margin-bottom: 10px;
-}
-
-.subtitle {
-    font-size: 24px;
-    color: #1f4d2d;
     margin-bottom: 30px;
 }
 
@@ -125,8 +119,8 @@ h1 {
 button {
     cursor: pointer;
     font-family: "Delius", cursive;
-    font-size: 22px;
-    padding: 10px 20px;
+    font-size: 18px; /* Smaller font size */
+    padding: 8px 16px; /* Smaller padding */
     margin-top: 15px;
     border: 3px solid #1f4d2d; /* dark green outline */
     border-radius: 12px;
@@ -144,8 +138,8 @@ button:hover {
     position: fixed;
     bottom: 30px;
     right: 30px;
-    padding: 12px 20px;
-    font-size: 20px;
+    padding: 10px 16px; /* Smaller padding */
+    font-size: 18px; /* Smaller font size */
     text-decoration: none;
     border: 3px solid #1f4d2d;
     border-radius: 12px;
@@ -172,14 +166,11 @@ button:hover {
     background: #ffcccc;
 }
 
-/* Instructions */
-.instructions {
-    font-size: 18px;
-    color: #555;
-    margin-top: 20px;
-    max-width: 300px;
-    margin-left: auto;
-    margin-right: auto;
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
 }
 </style>
 </head>
@@ -187,13 +178,12 @@ button:hover {
 <body>
 
 <h1>Nat's Pondering Pond</h1>
-<div class="subtitle">Add your thoughts and watch them float away...</div>
 
 <div class="main-layout">
 
     <!-- Left: Pond -->
     <div class="pond-wrapper">
-        <img src="https://i.imgur.com/3sXWJ2v.png" class="pond" alt="Pond">
+        <img src="pond.png" class="pond" alt="Pond">
         <div id="pondDrawings" class="drawing-container"></div>
     </div>
 
@@ -216,17 +206,15 @@ button:hover {
 
         </div>
 
-        <button onclick="addToPond()">Add to Pond</button>
-        <button class="clear-btn" onclick="clearCanvas()">Clear Canvas</button>
-        
-        <div class="instructions">
-            Draw something in the canvas, then click "Add to Pond" to see it float in the pond!
+        <div class="button-group">
+            <button onclick="addToPond()">🐟 Add to Pond</button>
+            <button class="clear-btn" onclick="clearCanvas()">Clear Canvas</button>
         </div>
 
     </div>
 </div>
 
-<a href="gallery.html" class="gallery-link">Gallery of Lost & Found</a>
+<a href="gallery.html" class="gallery-link">🖼️ Gallery of Lost & Found</a>
 
 <script>
 // DRAWING LOGIC
