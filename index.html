@@ -3,11 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Nat's Pondering Pond</title>
-<link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Delius&display=swap" rel="stylesheet">
 <style>
-
 body {
-    font-family: "Caveat", cursive;
+    font-family: "Delius", cursive;
     background: #FFF9F0; /* Cream background */
     margin: 0;
     padding: 30px;
@@ -17,6 +16,13 @@ body {
 h1 {
     font-size: 48px;
     color: #1f4d2d;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 24px;
+    color: #1f4d2d;
+    margin-bottom: 30px;
 }
 
 .main-layout {
@@ -113,22 +119,24 @@ h1 {
     background: #FFF9F0; /* match cream background */
     border: 3px dashed #444;
     margin-left: 10px;
+    cursor: crosshair;
 }
 
 button {
     cursor: pointer;
-    font-family: "Caveat", cursive;
-    font-size: 20px;
+    font-family: "Delius", cursive;
+    font-size: 22px;
     padding: 10px 20px;
     margin-top: 15px;
     border: 3px solid #1f4d2d; /* dark green outline */
     border-radius: 12px;
     background: #FFF9F0;
-    transition: transform 0.2s;
+    transition: transform 0.2s, background 0.3s;
 }
 
 button:hover {
     transform: scale(1.05);
+    background: #e8f4ea;
 }
 
 /* Gallery button at bottom right */
@@ -137,7 +145,7 @@ button:hover {
     bottom: 30px;
     right: 30px;
     padding: 12px 20px;
-    font-size: 18px;
+    font-size: 20px;
     text-decoration: none;
     border: 3px solid #1f4d2d;
     border-radius: 12px;
@@ -146,32 +154,53 @@ button:hover {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    transition: transform 0.2s;
+    transition: transform 0.2s, background 0.3s;
 }
 
 .gallery-link:hover {
     transform: scale(1.05);
+    background: #e8f4ea;
 }
 
+/* Clear button */
+.clear-btn {
+    background: #ffe6e6;
+    margin-left: 10px;
+}
+
+.clear-btn:hover {
+    background: #ffcccc;
+}
+
+/* Instructions */
+.instructions {
+    font-size: 18px;
+    color: #555;
+    margin-top: 20px;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+}
 </style>
 </head>
 
 <body>
 
 <h1>Nat's Pondering Pond</h1>
+<div class="subtitle">Add your thoughts and watch them float away...</div>
 
 <div class="main-layout">
 
     <!-- Left: Pond -->
     <div class="pond-wrapper">
-        <img src="pond.png" class="pond">
+        <img src="https://i.imgur.com/3sXWJ2v.png" class="pond" alt="Pond">
         <div id="pondDrawings" class="drawing-container"></div>
     </div>
 
     <!-- Right: Tools -->
     <div class="toolbox">
 
-        <h2 class="tool-title">Add flowers to our garden?</h2>
+        <h2 class="tool-title">Drop Something Into Our Pond?</h2>
 
         <div class="colors-and-canvas">
 
@@ -187,12 +216,17 @@ button:hover {
 
         </div>
 
-        <button onclick="addToPond()">🌱 Plant</button>
+        <button onclick="addToPond()">Add to Pond</button>
+        <button class="clear-btn" onclick="clearCanvas()">Clear Canvas</button>
+        
+        <div class="instructions">
+            Draw something in the canvas, then click "Add to Pond" to see it float in the pond!
+        </div>
 
     </div>
 </div>
 
-<a href="gallery.html" class="gallery-link">🖼️ See flower gallery</a>
+<a href="gallery.html" class="gallery-link">Gallery of Lost & Found</a>
 
 <script>
 // DRAWING LOGIC
@@ -201,47 +235,116 @@ const ctx = canvas.getContext("2d");
 canvas.width = 240;
 canvas.height = 240;
 
+// Set initial canvas background
+ctx.fillStyle = '#FFF9F0';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
 let drawing = false;
 let currentColor = "#1f4d2d";
 
-function selectColor(c) { currentColor = c; }
+function selectColor(c) { 
+    currentColor = c; 
+}
 
-canvas.addEventListener("mousedown", () => drawing = true);
-canvas.addEventListener("mouseup", () => drawing = false);
+canvas.addEventListener("mousedown", startDrawing);
+canvas.addEventListener("mouseup", stopDrawing);
 canvas.addEventListener("mousemove", draw);
+canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
+canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+canvas.addEventListener("touchend", handleTouchEnd);
+
+function startDrawing(e) {
+    drawing = true;
+    draw(e);
+}
+
+function stopDrawing() {
+    drawing = false;
+    ctx.beginPath();
+}
 
 function draw(e) {
     if (!drawing) return;
+    
     const rect = canvas.getBoundingClientRect();
-    ctx.fillStyle = currentColor;
+    let x, y;
+    
+    if (e.type.includes('touch')) {
+        x = e.touches[0].clientX - rect.left;
+        y = e.touches[0].clientY - rect.top;
+    } else {
+        x = e.clientX - rect.left;
+        y = e.clientY - rect.top;
+    }
+    
+    ctx.lineWidth = 12;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = currentColor;
+    
+    ctx.lineTo(x, y);
+    ctx.stroke();
     ctx.beginPath();
-    ctx.arc(e.clientX - rect.left, e.clientY - rect.top, 6, 0, Math.PI * 2); // slightly bigger
-    ctx.fill();
+    ctx.moveTo(x, y);
 }
 
-// ADD TO POND + SAVE TO DB
+// Touch event handlers
+function handleTouchStart(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent("mousedown", {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+    });
+    canvas.dispatchEvent(mouseEvent);
+}
+
+function handleTouchMove(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent("mousemove", {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+    });
+    canvas.dispatchEvent(mouseEvent);
+}
+
+function handleTouchEnd(e) {
+    e.preventDefault();
+    const mouseEvent = new MouseEvent("mouseup", {});
+    canvas.dispatchEvent(mouseEvent);
+}
+
+// Clear canvas function
+function clearCanvas() {
+    ctx.fillStyle = '#FFF9F0';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+// ADD TO POND + SAVE TO DB (simulated for demo)
 async function addToPond() {
     const imgData = canvas.toDataURL();
-
-    await fetch("/api/addItem", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            img: imgData,
-            x: Math.random() * 80 + 10, 
-            y: Math.random() * 60 + 20,
-            timestamp: Date.now()
-        })
+    
+    // For demo purposes, we'll store in localStorage
+    // In a real app, this would be sent to your backend
+    let items = JSON.parse(localStorage.getItem('pondItems') || '[]');
+    items.push({
+        img: imgData,
+        x: Math.random() * 80 + 10, 
+        y: Math.random() * 60 + 20,
+        timestamp: Date.now()
     });
-
+    localStorage.setItem('pondItems', JSON.stringify(items));
+    
     alert("Added to Pond!");
-    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    clearCanvas();
     loadPondItems();
 }
 
 // LOAD POND ITEMS
 async function loadPondItems() {
-    const items = await fetch("/api/getItems").then(r => r.json());
+    // For demo, load from localStorage
+    // In a real app, this would come from your backend
+    const items = JSON.parse(localStorage.getItem('pondItems') || '[]');
     const container = document.getElementById("pondDrawings");
     container.innerHTML = "";
 
@@ -258,6 +361,7 @@ async function loadPondItems() {
     });
 }
 
+// Initialize
 loadPondItems();
 </script>
 
