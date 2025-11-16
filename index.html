@@ -1,81 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pondering Pond</title>
-  <style>
-    /* Make canvas fill the screen */
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      height: 100%;
-      background-color: #FFF9F0; /* Light cream background */
-    }
-    canvas {
-      display: block;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Nat's Pondering Pond</title>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+
+body {
+    font-family: "Patrick Hand", cursive;
+    background: #FFF9F0;
+    margin: 0;
+    padding: 30px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 48px;
+    color: #1f4d2d;
+}
+
+.main-layout {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 60px;
+    margin-top: 40px;
+}
+
+/* Pond Left */
+.pond-wrapper {
+    position: relative;
+    width: 650px;
+}
+
+.pond {
+    width: 100%;
+}
+
+.drawing-container img {
+    position: absolute;
+    width: 80px;
+    transform: translate(-50%, -50%) scale(0);
+    animation: pop 0.4s ease-out forwards;
+}
+
+@keyframes pop {
+    to { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Right panel tools */
+.toolbox {
+    width: 300px;
+    text-align: center;
+}
+
+.tool-title {
+    font-size: 26px;
+    margin-bottom: 20px;
+}
+
+.colors-and-canvas {
+    display: flex;
+    gap: 18px;
+}
+
+.color-column {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.color-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+#draw-area {
+    width: 240px;
+    height: 240px;
+    background: white;
+    border: 3px dashed #444;
+}
+
+.gallery-link {
+    margin-top: 20px;
+    display: block;
+    font-size: 20px;
+}
+
+</style>
 </head>
+
 <body>
-  <canvas id="pondCanvas"></canvas>
-  <script>
-    window.onload = () => {
-      const canvas = document.getElementById("pondCanvas");
-      const ctx = canvas.getContext("2d");
-      const pond = new Image();
 
-      // Use local image in root folder
-      pond.src = "./pond.png";
+<h1>Nat's Pondering Pond</h1>
 
-      pond.onload = () => {
-        console.log("Pond loaded successfully!");
-        animate();
-      };
+<div class="main-layout">
 
-      pond.onerror = () => {
-        console.error("Failed to load pond image.");
-      };
+    <!-- Left: Pond -->
+    <div class="pond-wrapper">
+        <img src="pond.png" class="pond">
+        <div id="pondDrawings" class="drawing-container"></div>
+    </div>
 
-      function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-      }
+    <!-- Right: Tools -->
+    <div class="toolbox">
 
-      window.addEventListener("resize", resizeCanvas);
-      resizeCanvas();
+        <h2 class="tool-title">Draw Something Into Our Pond</h2>
 
-      function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const { width, height } = canvas;
+        <div class="colors-and-canvas">
 
-        // Background is already set in CSS, but optional to fill here too
-        ctx.fillStyle = "#FFF9F0";
-        ctx.fillRect(0, 0, width, height);
+            <div class="color-column">
+                <div class="color-dot" style="background:#1f4d2d" onclick="selectColor('#1f4d2d')"></div>
+                <div class="color-dot" style="background:#c43a3a" onclick="selectColor('#c43a3a')"></div>
+                <div class="color-dot" style="background:#444" onclick="selectColor('#444')"></div>
+                <div class="color-dot" style="background:#d8b52d" onclick="selectColor('#d8b52d')"></div>
+                <div class="color-dot" style="background:#e1e1e1" onclick="selectColor('#e1e1e1')"></div>
+            </div>
 
-        // Maintain pond image aspect ratio
-        const ratio = pond.width / pond.height;
-        let pondWidth = Math.min(width * 0.5, pond.width);
-        let pondHeight = pondWidth / ratio;
+            <canvas id="draw-area"></canvas>
 
-        if (pondHeight > height * 0.8) {
-          pondHeight = height * 0.8;
-          pondWidth = pondHeight * ratio;
-        }
+        </div>
 
-        // Floating slightly left, slightly higher, slightly faster
-        const offsetX = width * 0.15;
-        const offsetY = height / 2 - pondHeight / 2 + Math.sin(Date.now() / 700) * 12;
+        <button onclick="addToPond()">Add to Pond</button>
 
-        // Slight vibrant effect
-        ctx.filter = "saturate(1.2) contrast(1.05)";
-        ctx.drawImage(pond, offsetX, offsetY, pondWidth, pondHeight);
-        ctx.filter = "none";
+        <a href="gallery.html" class="gallery-link">Visit Lost & Found Gallery</a>
 
-        requestAnimationFrame(animate);
-      }
-    };
-  </script>
+    </div>
+</div>
+
+<script>
+// DRAWING LOGIC
+const canvas = document.getElementById("draw-area");
+const ctx = canvas.getContext("2d");
+canvas.width = 240;
+canvas.height = 240;
+
+let drawing = false;
+let currentColor = "#1f4d2d";
+
+function selectColor(c) { currentColor = c; }
+
+canvas.addEventListener("mousedown", () => drawing = true);
+canvas.addEventListener("mouseup", () => drawing = false);
+canvas.addEventListener("mousemove", draw);
+
+function draw(e) {
+    if (!drawing) return;
+    const rect = canvas.getBoundingClientRect();
+    ctx.fillStyle = currentColor;
+    ctx.beginPath();
+    ctx.arc(e.clientX - rect.left, e.clientY - rect.top, 4, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+// ADD TO POND + SAVE TO DB
+async function addToPond() {
+    const imgData = canvas.toDataURL();
+
+    await fetch("/api/addItem", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            img: imgData,
+            x: Math.random() * 80 + 10, 
+            y: Math.random() * 60 + 20,
+            timestamp: Date.now()
+        })
+    });
+
+    alert("Added to Pond!");
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    loadPondItems();
+}
+
+// LOAD POND ITEMS
+async function loadPondItems() {
+    const items = await fetch("/api/getItems").then(r => r.json());
+    const container = document.getElementById("pondDrawings");
+    container.innerHTML = "";
+
+    items.forEach((item, i) => {
+        setTimeout(() => {
+            let img = document.createElement("img");
+            img.src = item.img;
+            img.style.left = item.x + "%";
+            img.style.top = item.y + "%";
+            container.appendChild(img);
+        }, i * 250);
+    });
+}
+
+loadPondItems();
+</script>
+
 </body>
 </html>
