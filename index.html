@@ -18,11 +18,14 @@ body {
     text-align: center;
     overflow-x: hidden;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Header */
 .header {
     padding: 20px 0;
+    flex-shrink: 0;
 }
 
 h1 {
@@ -41,7 +44,7 @@ h1 {
     padding: 30px;
     max-width: 1200px;
     margin: 0 auto;
-    min-height: 70vh;
+    flex: 1;
 }
 
 /* Pond Section - Centered and larger */
@@ -225,11 +228,15 @@ button:hover {
 /* Mobile Styles */
 @media (max-width: 768px) {
     body {
-        padding: 10px;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
     }
     
     .header {
         padding: 15px 0;
+        flex-shrink: 0;
     }
     
     h1 {
@@ -239,20 +246,36 @@ button:hover {
     .main-content {
         flex-direction: column;
         gap: 0;
-        padding: 10px;
-        min-height: auto;
+        padding: 0;
+        margin: 0;
+        flex: 1;
+        width: 100%;
     }
     
     .pond-section {
         max-width: 100%;
         order: 1;
-        margin-bottom: 20px;
-        flex: none;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+    }
+    
+    .pond-wrapper {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .pond {
         max-width: 100%;
-        width: 100%;
+        width: auto;
+        height: auto;
+        max-height: 70vh;
+        object-fit: contain;
     }
     
     .drawing-container img {
@@ -263,17 +286,32 @@ button:hover {
         width: 100%;
         margin-top: 0;
         order: 3;
-        display: none; /* Hidden by default on mobile */
-        background: rgba(255, 255, 255, 0.95);
+        display: none;
+        background: rgba(255, 255, 255, 0.98);
         padding: 20px;
         border-radius: 15px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        margin: 10px 0;
+        margin: 0;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10;
+        justify-content: center;
     }
     
-    /* Mobile buttons - only show on mobile */
-    .mobile-buttons {
-        display: none; /* Hidden on desktop */
+    /* Mobile buttons container - positioned at bottom */
+    .mobile-buttons-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto 20px auto;
+        order: 2;
+        flex-shrink: 0;
+        padding: 0 20px;
     }
     
     .mobile-main-button {
@@ -309,40 +347,12 @@ button:hover {
         display: flex;
     }
     
-    .mobile-buttons.hidden {
+    .mobile-buttons-container.hidden {
         display: none;
     }
     
-    /* Show mobile buttons only on mobile */
-    @media (max-width: 768px) {
-        .mobile-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: 100%;
-            max-width: 280px;
-            margin: 20px auto;
-            order: 2;
-        }
-        
-        /* Single gallery button in mobile buttons */
-        .mobile-gallery-button {
-            font-family: "Delius", cursive;
-            font-size: 16px;
-            padding: 14px 20px;
-            border: 2px solid #1f4d2d;
-            border-radius: 10px;
-            background: #FFF9F0;
-            color: #1f4d2d;
-            cursor: pointer;
-            transition: transform 0.2s, background 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-        }
+    .pond-section.hidden {
+        display: none;
     }
     
     /* Adjust tools for mobile */
@@ -378,11 +388,6 @@ button:hover {
     .tool-title {
         font-size: 20px;
     }
-    
-    /* Hide pond when in drawing mode on mobile */
-    .pond-section.hidden {
-        display: none;
-    }
 }
 
 @media (max-width: 480px) {
@@ -390,7 +395,7 @@ button:hover {
         font-size: 28px;
     }
     
-    .mobile-main-button, .mobile-gallery-button {
+    .mobile-main-button {
         font-size: 15px;
         padding: 12px 18px;
     }
@@ -408,12 +413,16 @@ button:hover {
         width: 28px;
         height: 28px;
     }
+    
+    .mobile-buttons-container {
+        max-width: 280px;
+    }
 }
 
 /* Close button for mobile */
 .close-tools {
     position: absolute;
-    top: 10px;
+    top: 15px;
     right: 15px;
     background: none;
     border: none;
@@ -422,7 +431,7 @@ button:hover {
     color: #1f4d2d;
     width: auto;
     padding: 5px;
-    display: none; /* Hidden on desktop */
+    display: none;
 }
 
 .close-tools:hover {
@@ -434,6 +443,18 @@ button:hover {
 @media (max-width: 768px) {
     .close-tools {
         display: block;
+    }
+    
+    /* Hide mobile buttons on desktop */
+    .mobile-buttons-container {
+        display: none;
+    }
+}
+
+/* Ensure mobile buttons are only visible on mobile */
+@media (min-width: 769px) {
+    .mobile-buttons-container {
+        display: none !important;
     }
 }
 </style>
@@ -456,12 +477,12 @@ button:hover {
         </div>
     </div>
 
-    <!-- Mobile Buttons (Hidden on Desktop) -->
-    <div class="mobile-buttons" id="mobileButtons">
+    <!-- Mobile Buttons Container (Hidden on Desktop) -->
+    <div class="mobile-buttons-container" id="mobileButtons">
         <button class="mobile-main-button" onclick="showDrawingTools()">
             🎨 Drop Something Into Our Pond
         </button>
-        <a href="gallery.html" class="mobile-gallery-button">
+        <a href="gallery.html" class="mobile-main-button">
             🖼️ Gallery of Lost & Found
         </a>
     </div>
@@ -635,13 +656,12 @@ async function addToPond() {
     
     let items = JSON.parse(localStorage.getItem('pondItems') || '[]');
     
-    // Calculate positions within the light blue pond area (adjust these values based on your pond image)
-    // These are approximate percentages - adjust based on your actual pond.png dimensions
+    // Calculate positions within the light blue pond area
     const pondArea = {
-        left: 15,   // 15% from left
-        right: 85,  // 85% from left
-        top: 20,    // 20% from top
-        bottom: 80  // 80% from top
+        left: 15,
+        right: 85,
+        top: 20,
+        bottom: 80
     };
     
     items.push({
