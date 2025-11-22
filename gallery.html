@@ -5,6 +5,9 @@
 <title>Gallery of Lost & Found - Nat's Pondering Pond</title>
 <link href="https://fonts.googleapis.com/css2?family=Delius&display=swap" rel="stylesheet">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Add Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <style>
 * {
     box-sizing: border-box;
@@ -175,97 +178,111 @@ h1 {
     </div>
 
     <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyCxDWwZX-tvvHMMUilSKzlIoiOKkbONA0M",
+        authDomain: "nats-pondering-pond.firebaseapp.com",
+        projectId: "nats-pondering-pond",
+        storageBucket: "nats-pondering-pond.firebasestorage.app",
+        messagingSenderId: "44235660914",
+        appId: "1:44235660914:web:82778716501a6d460a6ceb",
+        measurementId: "G-E7K9N3YD8S"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let loadedDrawingIds = new Set();
+
     function loadGalleryItems() {
         const container = document.getElementById('galleryContainer');
         const countElement = document.getElementById('drawingCount');
-        const items = JSON.parse(localStorage.getItem('pondItems') || '[]');
         
-        // Update count
-        countElement.textContent = `${items.length} drawing${items.length !== 1 ? 's' : ''}`;
-        
-        // Clear container
-        container.innerHTML = '';
-        
-        if (items.length === 0) {
-            container.innerHTML = `
-                <div class="empty-gallery">
-                    <h2>The Pond is Empty</h2>
-                    <p>No drawings have been added yet. Go back to the pond and create something!</p>
-                </div>
-            `;
-            return;
+        try {
+            // Real-time listener for drawings
+            db.collection('drawings')
+                .orderBy('timestamp', 'desc')
+                .onSnapshot((snapshot) => {
+                    const items = [];
+                    snapshot.forEach(doc => {
+                        items.push(doc.data());
+                    });
+                    
+                    // Update count
+                    countElement.textContent = `${items.length} drawing${items.length !== 1 ? 's' : ''}`;
+                    
+                    // Clear container
+                    container.innerHTML = '';
+                    
+                    if (items.length === 0) {
+                        container.innerHTML = `
+                            <div class="empty-gallery">
+                                <h2>The Pond is Empty</h2>
+                                <p>No drawings have been added yet. Go back to the pond and create something!</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    // Add all items
+                    items.forEach(item => {
+                        const galleryItem = document.createElement('div');
+                        galleryItem.className = 'gallery-item';
+                        galleryItem.setAttribute('data-id', item.id);
+                        
+                        const img = document.createElement('img');
+                        img.src = item.img;
+                        img.alt = 'Pond Drawing';
+                        
+                        galleryItem.appendChild(img);
+                        
+                        // Add triple tap/click deletion for gallery items
+                        let tapCount = 0;
+                        let lastTapTime = 0;
+                        
+                        function handleDeletion(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            const currentTime = new Date().getTime();
+                            if (currentTime - lastTapTime > 1000) {
+                                tapCount = 0;
+                            }
+                            
+                            tapCount++;
+                            lastTapTime = currentTime;
+                            
+                            if (tapCount >= 3) {
+                                deleteDrawing(item.id);
+                                tapCount = 0;
+                            }
+                        }
+                        
+                        // Add both click and touch events for all devices
+                        galleryItem.addEventListener('click', handleDeletion);
+                        galleryItem.addEventListener('touchstart', handleDeletion, { passive: false });
+                        
+                        container.appendChild(galleryItem);
+                    });
+                }, (error) => {
+                    console.error('Error loading gallery:', error);
+                });
+        } catch (error) {
+            console.error('Error setting up gallery:', error);
         }
-        
-        // Sort by timestamp (newest first)
-        items.sort((a, b) => b.timestamp - a.timestamp);
-        
-        // Add all items at once without animation
-        items.forEach(item => {
-            const galleryItem = document.createElement('div');
-            galleryItem.className = 'gallery-item';
-            galleryItem.setAttribute('data-id', item.id);
-            
-            const img = document.createElement('img');
-            img.src = item.img;
-            img.alt = 'Pond Drawing';
-            
-            galleryItem.appendChild(img);
-            
-            // Add triple tap/click deletion for gallery items
-            let tapCount = 0;
-            let lastTapTime = 0;
-            
-            function handleDeletion(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const currentTime = new Date().getTime();
-                if (currentTime - lastTapTime > 1000) {
-                    tapCount = 0;
-                }
-                
-                tapCount++;
-                lastTapTime = currentTime;
-                
-                if (tapCount >= 3) {
-                    deleteDrawing(item.id);
-                    tapCount = 0;
-                }
-            }
-            
-            // Add both click and touch events for all devices
-            galleryItem.addEventListener('click', handleDeletion);
-            galleryItem.addEventListener('touchstart', handleDeletion, { passive: false });
-            
-            container.appendChild(galleryItem);
-        });
     }
 
-    function deleteDrawing(id) {
-        let items = JSON.parse(localStorage.getItem('pondItems') || '[]');
-        items = items.filter(item => item.id !== id);
-        localStorage.setItem('pondItems', JSON.stringify(items));
-        
-        // Remove from gallery display
-        const galleryItem = document.querySelector(`.gallery-item[data-id="${id}"]`);
-        if (galleryItem) {
-            galleryItem.style.transition = 'opacity 0.3s, transform 0.3s';
-            galleryItem.style.opacity = '0';
-            galleryItem.style.transform = 'scale(0.8)';
-            setTimeout(() => {
-                galleryItem.remove();
-                // Update the count and reload gallery
-                loadGalleryItems();
-            }, 300);
+    async function deleteDrawing(id) {
+        try {
+            await db.collection('drawings').doc(id).delete();
+        } catch (error) {
+            console.error('Error deleting drawing:', error);
         }
     }
 
     // Load gallery when page loads
     document.addEventListener('DOMContentLoaded', loadGalleryItems);
-
-    // Update gallery if items change while page is open
-    window.addEventListener('storage', loadGalleryItems);
-    window.addEventListener('focus', loadGalleryItems);
     </script>
 </body>
 </html>
