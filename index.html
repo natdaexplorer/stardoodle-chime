@@ -125,16 +125,6 @@ h1 {
     justify-content: center;
 }
 
-.typing-cursor {
-    display: inline-block;
-    animation: blink 1s infinite;
-}
-
-@keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
-}
-
 .tools-container {
     display: flex;
     gap: 20px;
@@ -282,11 +272,11 @@ button:hover {
         margin: 0;
         flex: 1;
         width: 100%;
+        position: relative;
     }
     
     .pond-section {
         max-width: 100%;
-        order: 1;
         flex: 1;
         display: flex;
         align-items: center;
@@ -306,7 +296,7 @@ button:hover {
         max-width: 100%;
         width: auto;
         height: auto;
-        max-height: 70vh;
+        max-height: 60vh;
         object-fit: contain;
     }
     
@@ -317,7 +307,6 @@ button:hover {
     .tools-section {
         width: 100%;
         margin-top: 0;
-        order: 3;
         display: none;
         background: rgba(255, 255, 255, 0.98);
         padding: 20px;
@@ -339,11 +328,14 @@ button:hover {
         flex-direction: column;
         gap: 12px;
         width: 100%;
-        max-width: 300px;
+        max-width: 320px;
         margin: 0 auto 20px auto;
-        order: 2;
         flex-shrink: 0;
         padding: 0 20px;
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
     }
     
     .mobile-main-button {
@@ -362,6 +354,9 @@ button:hover {
         justify-content: center;
         gap: 8px;
         width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
     .mobile-main-button:hover {
@@ -533,7 +528,7 @@ button:hover {
             <!-- Canvas and buttons -->
             <div class="canvas-container">
                 <canvas id="draw-area"></canvas>
-                <button class="redo-button" onclick="clearCanvasWithMessage()" title="Clear canvas">↺</button>
+                <button class="redo-button" onclick="clearCanvas()" title="Clear canvas">↺</button>
                 <div class="button-group">
                     <button onclick="addToPond()">🐟 Add to Pond</button>
                 </div>
@@ -574,6 +569,7 @@ setupCanvas();
 
 let drawing = false;
 let currentColor = "#c43a3a";
+let hasDrawing = false;
 
 function selectColor(color, element) {
     currentColor = color;
@@ -600,6 +596,7 @@ canvas.addEventListener("touchend", handleTouchEnd);
 
 function startDrawing(e) {
     drawing = true;
+    hasDrawing = true;
     ctx.beginPath();
     const pos = getMousePos(e);
     ctx.moveTo(pos.x, pos.y);
@@ -619,6 +616,7 @@ function draw(e) {
     ctx.strokeStyle = currentColor;
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
+    hasDrawing = true;
 }
 
 function getMousePos(e) {
@@ -647,6 +645,7 @@ function getMousePos(e) {
 function handleTouchStart(e) {
     e.preventDefault();
     drawing = true;
+    hasDrawing = true;
     ctx.beginPath();
     const touch = e.touches[0];
     const mouseEvent = new MouseEvent("mousedown", {
@@ -676,58 +675,63 @@ function handleTouchEnd(e) {
 function clearCanvas() {
     ctx.fillStyle = '#FFF9F0';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    hasDrawing = false;
 }
 
-// Clear canvas with typing message
-function clearCanvasWithMessage() {
-    clearCanvas();
+// Check if canvas is blank
+function isCanvasBlank() {
+    const blank = document.createElement('canvas');
+    blank.width = canvas.width;
+    blank.height = canvas.height;
+    const blankCtx = blank.getContext('2d');
+    blankCtx.fillStyle = '#FFF9F0';
+    blankCtx.fillRect(0, 0, blank.width, blank.height);
     
+    return canvas.toDataURL() === blank.toDataURL();
+}
+
+// Type text with pauses
+function typeWithPauses() {
     const toolTitle = document.getElementById('toolTitle');
-    const message = "That's not a drawing. Try again?";
-    const originalTitle = "Drop Something Into<br>Our Pond?";
+    const messages = [
+        "That's not a drawing.",
+        "Try again?",
+        "Drop Something Into Our Pond?"
+    ];
     
-    // Clear and start typing animation
-    toolTitle.innerHTML = '';
-    typeText(toolTitle, message, 50, function() {
-        // After typing complete, wait 2 seconds then type original title
-        setTimeout(() => {
+    let messageIndex = 0;
+    
+    function typeNextMessage() {
+        if (messageIndex < messages.length) {
+            const message = messages[messageIndex];
             toolTitle.innerHTML = '';
-            typeText(toolTitle, originalTitle, 50);
-        }, 2000);
-    });
-}
-
-function typeText(element, text, speed, callback) {
-    let i = 0;
-    element.innerHTML = '';
-    
-    function type() {
-        if (i < text.length) {
-            // Handle HTML tags
-            if (text.substring(i, i + 4) === '<br>') {
-                element.innerHTML += '<br>';
-                i += 4;
-            } else {
-                element.innerHTML += text.charAt(i);
-                i++;
+            
+            let i = 0;
+            function type() {
+                if (i < message.length) {
+                    toolTitle.innerHTML += message.charAt(i);
+                    i++;
+                    setTimeout(type, 100); // Slower typing speed
+                } else {
+                    messageIndex++;
+                    setTimeout(typeNextMessage, 2000); // Pause 2 seconds between messages
+                }
             }
-            
-            // Add blinking cursor
-            element.innerHTML += '<span class="typing-cursor">|</span>';
-            
-            setTimeout(type, speed);
-        } else {
-            // Remove cursor when done
-            element.innerHTML = text;
-            if (callback) callback();
+            type();
         }
     }
     
-    type();
+    typeNextMessage();
 }
 
 // ADD TO POND
 async function addToPond() {
+    // Check if canvas is blank
+    if (isCanvasBlank()) {
+        typeWithPauses();
+        return;
+    }
+    
     const imgData = canvas.toDataURL();
     
     let items = JSON.parse(localStorage.getItem('pondItems') || '[]');
