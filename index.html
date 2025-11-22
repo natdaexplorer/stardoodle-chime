@@ -144,7 +144,8 @@ h1 {
     animation: pop 1.5s ease-out forwards;
     pointer-events: auto;
     z-index: 2;
-    transition: transform 0.2s ease;
+    transition: transform 0.6s ease; /* Added for click animation */
+    cursor: pointer;
 }
 
 .drawing-container img:hover {
@@ -889,12 +890,12 @@ function generateDrawingId() {
 
 // Get random position within the pond boundaries with collision detection
 function getRandomPondPosition(existingItems = []) {
-    // Tighter boundaries to keep drawings inside pond - adjusted for your pond shape
+    // Adjusted boundaries - more space on left, less on right to avoid nook
     const pondArea = {
-        left: 25,    // Increased from 20 to keep away from left edge
-        right: 75,   // Reduced from 80 to keep away from right edge  
-        top: 30,     // Increased from 25 to keep away from top edge
-        bottom: 70   // Reduced from 75 to keep away from bottom edge
+        left: 15,    // 15% from left (more space)
+        right: 65,   // 65% from left (reduced to avoid right nook)  
+        top: 15,     // 15% from top (better top distribution)
+        bottom: 80   // 80% from top (better vertical distribution)
     };
     
     let attempts = 0;
@@ -908,7 +909,7 @@ function getRandomPondPosition(existingItems = []) {
         let tooClose = false;
         for (const item of existingItems) {
             const distance = Math.sqrt(Math.pow(item.x - x, 2) + Math.pow(item.y - y, 2));
-            if (distance < 8) { // Reduced minimum distance to allow more drawings
+            if (distance < 8) {
                 tooClose = true;
                 break;
             }
@@ -927,7 +928,7 @@ function getRandomPondPosition(existingItems = []) {
         y: Math.random() * (pondArea.bottom - pondArea.top) + pondArea.top
     };
 }
-
+    
 // FIREBASE FUNCTIONS - WITH LAZY LOADING AND CACHE
 async function loadPondItems() {
     showLoadingSpinner();
@@ -1135,31 +1136,24 @@ function addSingleDrawing(item) {
     img.style.pointerEvents = 'auto';
     img.style.cursor = 'pointer';
     
-    // Triple tap/click deletion for all devices
-    let tapCount = 0;
-    let lastTapTime = 0;
+    // Click animation function
+    function animateClick() {
+        img.style.transform = 'translate(-50%, -50%) scale(1.4)'; // Grow to 140%
+        setTimeout(() => {
+            img.style.transform = 'translate(-50%, -50%) scale(1)'; // Return to normal after 0.6 seconds
+        }, 600);
+    }
     
-    function handleDeletion(e) {
+    // Simple click handler for animation only
+    function handleClick(e) {
         e.preventDefault();
         e.stopPropagation();
-        
-        const currentTime = new Date().getTime();
-        if (currentTime - lastTapTime > 1000) {
-            tapCount = 0;
-        }
-        
-        tapCount++;
-        lastTapTime = currentTime;
-        
-        if (tapCount >= 3) {
-            deleteDrawing(item.id);
-            tapCount = 0;
-        }
+        animateClick();
     }
     
     // Add both click and touch events for all devices
-    img.addEventListener('click', handleDeletion);
-    img.addEventListener('touchstart', handleDeletion, { passive: false });
+    img.addEventListener('click', handleClick);
+    img.addEventListener('touchstart', handleClick, { passive: false });
     
     container.appendChild(img);
     loadedDrawingIds.add(item.id);
