@@ -84,6 +84,9 @@ h1 {
     align-items: center;
     cursor: pointer;
     position: relative;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.5s ease forwards;
 }
 
 .gallery-item:hover {
@@ -118,6 +121,19 @@ h1 {
     font-size: 16px;
     margin: 0;
     opacity: 0.8;
+}
+
+.loading-gallery {
+    grid-column: 1 / -1;
+    padding: 40px 20px;
+    color: #1f4d2d;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Mobile Styles */
@@ -169,12 +185,12 @@ h1 {
 <body>
     <div class="header">
         <h1>Gallery of Lost & Found</h1>
-        <div class="count" id="drawingCount">0 drawings</div>
+        <div class="count" id="drawingCount">Loading...</div>
         <a href="index.html" class="back-link">← Back to Pond</a>
     </div>
 
     <div class="gallery-container" id="galleryContainer">
-        <!-- Gallery items will be loaded here -->
+        <div class="loading-gallery">⏳ Loading gallery...</div>
     </div>
 
     <script>
@@ -193,6 +209,8 @@ h1 {
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Image Cache for Gallery
+    const galleryImageCache = new Map();
     let loadedDrawingIds = new Set();
 
     function loadGalleryItems() {
@@ -200,22 +218,14 @@ h1 {
         const countElement = document.getElementById('drawingCount');
         
         try {
-            // SIMPLIFIED: Remove timestamp ordering to fix sync issues
             db.collection('drawings').onSnapshot((snapshot) => {
                 const items = [];
                 snapshot.forEach(doc => {
                     items.push(doc.data());
                 });
                 
-                // Sort by timestamp client-side if needed
-                items.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-                
-                // Update count
+                // Update count immediately
                 countElement.textContent = `${items.length} drawing${items.length !== 1 ? 's' : ''}`;
-                
-                // Clear container
-                container.innerHTML = '';
-                loadedDrawingIds.clear();
                 
                 if (items.length === 0) {
                     container.innerHTML = `
@@ -227,60 +237,125 @@ h1 {
                     return;
                 }
                 
-                // Add all items
-                items.forEach(item => {
-                    if (loadedDrawingIds.has(item.id)) return;
-                    
-                    const galleryItem = document.createElement('div');
-                    galleryItem.className = 'gallery-item';
-                    galleryItem.setAttribute('data-id', item.id);
-                    
-                    const img = document.createElement('img');
-                    img.src = item.img;
-                    img.alt = 'Pond Drawing';
-                    
-                    galleryItem.appendChild(img);
-                    
-                    // Add triple tap/click deletion for gallery items
-                    let tapCount = 0;
-                    let lastTapTime = 0;
-                    
-                    function handleDeletion(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        const currentTime = new Date().getTime();
-                        if (currentTime - lastTapTime > 1000) {
-                            tapCount = 0;
-                        }
-                        
-                        tapCount++;
-                        lastTapTime = currentTime;
-                        
-                        if (tapCount >= 3) {
-                            deleteDrawing(item.id);
-                            tapCount = 0;
-                        }
-                    }
-                    
-                    // Add both click and touch events for all devices
-                    galleryItem.addEventListener('click', handleDeletion);
-                    galleryItem.addEventListener('touchstart', handleDeletion, { passive: false });
-                    
-                    container.appendChild(galleryItem);
-                    loadedDrawingIds.add(item.id);
-                });
+                // Clear container but keep loading message briefly
+                container.innerHTML = '<div class="loading-gallery">🔄 Loading drawings...</div>';
+                loadedDrawingIds.clear();
+                
+                // LAZY LOAD GALLERY ITEMS
+                loadGalleryItemsLazily(items);
+                
             }, (error) => {
                 console.error('Error loading gallery:', error);
+                container.innerHTML = `
+                    <div class="empty-gallery">
+                        <h2>Error Loading Gallery</h2>
+                        <p>Please try refreshing the page</p>
+                    </div>
+                `;
             });
         } catch (error) {
             console.error('Error setting up gallery:', error);
         }
     }
 
+    function loadGalleryItemsLazily(drawings) {
+        const container = document.getElementById('galleryContainer');
+        const BATCH_SIZE = 4; // Load 4 images at a time
+        const DELAY = 200; // 200ms between batches
+        
+        let currentIndex = 0;
+        
+        function loadNextBatch() {
+            const batch = drawings.slice(currentIndex, currentIndex + BATCH_SIZE);
+            
+            batch.forEach((item, batchIndex) => {
+                if (!loadedDrawingIds.has(item.id)) {
+                    // Add slight stagger within batch for smooth animation
+                    setTimeout(() => {
+                        addGalleryItem(item, currentIndex + batchIndex);
+                    }, batchIndex * 50);
+                }
+            });
+            
+            currentIndex += BATCH_SIZE;
+            
+            if (currentIndex < drawings.length) {
+                setTimeout(loadNextBatch, DELAY);
+            } else {
+                // All items loaded
+                setTimeout(() => {
+                    if (container.querySelector('.loading-gallery')) {
+                        container.querySelector('.loading-gallery').remove();
+                    }
+                }, 500);
+            }
+        }
+        
+        // Clear loading message and start lazy loading
+        container.innerHTML = '';
+        loadNextBatch();
+    }
+
+    function addGalleryItem(item, index) {
+        const container = document.getElementById('galleryContainer');
+        if (loadedDrawingIds.has(item.id)) return;
+        
+        const galleryItem = document.createElement('div');
+        galleryItem.className = 'gallery-item';
+        galleryItem.setAttribute('data-id', item.id);
+        
+        // Stagger animation delay based on index
+        galleryItem.style.animationDelay = `${index * 0.1}s`;
+        
+        // CACHE: Use cached image if available
+        let img;
+        if (galleryImageCache.has(item.id)) {
+            img = galleryImageCache.get(item.id).cloneNode();
+        } else {
+            img = document.createElement('img');
+            img.src = item.img;
+            img.alt = 'Pond Drawing';
+            // CACHE: Store in cache
+            galleryImageCache.set(item.id, img.cloneNode());
+        }
+        
+        galleryItem.appendChild(img);
+        
+        // Triple tap/click deletion for gallery items
+        let tapCount = 0;
+        let lastTapTime = 0;
+        
+        function handleDeletion(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const currentTime = new Date().getTime();
+            if (currentTime - lastTapTime > 1000) {
+                tapCount = 0;
+            }
+            
+            tapCount++;
+            lastTapTime = currentTime;
+            
+            if (tapCount >= 3) {
+                deleteDrawing(item.id);
+                tapCount = 0;
+            }
+        }
+        
+        // Add both click and touch events for all devices
+        galleryItem.addEventListener('click', handleDeletion);
+        galleryItem.addEventListener('touchstart', handleDeletion, { passive: false });
+        
+        container.appendChild(galleryItem);
+        loadedDrawingIds.add(item.id);
+    }
+
     async function deleteDrawing(id) {
         try {
             await db.collection('drawings').doc(id).delete();
+            // Remove from cache
+            galleryImageCache.delete(id);
         } catch (error) {
             console.error('Error deleting drawing:', error);
         }
