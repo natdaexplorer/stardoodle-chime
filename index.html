@@ -1115,51 +1115,7 @@ async function addToPond() {
     }
 }
 
-// Add a single drawing to the pond WITH CACHE
-function addSingleDrawing(item) {
-    const container = document.getElementById("pondDrawings");
-    if (loadedDrawingIds.has(item.id)) return;
-    
-    // CACHE: Check if image is already cached
-    let img;
-    if (imageCache.has(item.id)) {
-        img = imageCache.get(item.id).cloneNode();
-    } else {
-        img = document.createElement("img");
-        img.src = item.img;
-        // CACHE: Store in cache for future use
-        imageCache.set(item.id, img.cloneNode());
-    }
-    
-    img.style.left = item.x + "%";
-    img.style.top = item.y + "%";
-    img.setAttribute('data-id', item.id);
-    img.style.pointerEvents = 'auto';
-    img.style.cursor = 'pointer';
-    img.style.transition = 'transform 0.6s ease'; // Add transition for animation
-    
-    // Click animation function
-    function animateClick() {
-        img.style.transform = 'translate(-50%, -50%) scale(1.4)'; // Grow to 140%
-        setTimeout(() => {
-            img.style.transform = 'translate(-50%, -50%) scale(1)'; // Return to normal
-        }, 600);
-    }
-    
-    // Simple click handler for animation only
-    function handleClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        animateClick();
-    }
-    
-    // Add both click and touch events for all devices
-    img.addEventListener('click', handleClick);
-    img.addEventListener('touchstart', handleClick, { passive: false });
-    
-    container.appendChild(img);
-    loadedDrawingIds.add(item.id);
-}
+<!DOCTYPE html>
 
 function removeDrawingFromDisplay(id) {
     const img = document.querySelector(`img[data-id="${id}"]`);
