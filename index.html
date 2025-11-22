@@ -496,11 +496,6 @@ button:hover {
     .adding-message {
         font-size: 14px;
     }
-    
-    /* Show Instagram warning on mobile */
-    .instagram-warning {
-        display: block;
-    }
 }
 
 @media (max-width: 480px) {
@@ -643,7 +638,7 @@ function isInstagramBrowser() {
     return /Instagram/.test(navigator.userAgent);
 }
 
-// Show warning if in Instagram
+// Show warning only if in Instagram
 if (isInstagramBrowser()) {
     document.getElementById('instagramWarning').style.display = 'block';
     setTimeout(() => {
@@ -951,52 +946,8 @@ function addSingleDrawing(item) {
     img.style.pointerEvents = 'auto';
     img.style.cursor = 'pointer';
     
-    // Triple tap/click deletion for all devices
-    let tapCount = 0;
-    let lastTapTime = 0;
-    
-    function handleDeletion(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const currentTime = new Date().getTime();
-        if (currentTime - lastTapTime > 1000) {
-            tapCount = 0;
-        }
-        
-        tapCount++;
-        lastTapTime = currentTime;
-        
-        if (tapCount >= 3) {
-            deleteDrawing(item.id);
-            tapCount = 0;
-        }
-    }
-    
-    // Add both click and touch events for all devices
-    img.addEventListener('click', handleDeletion);
-    img.addEventListener('touchstart', handleDeletion, { passive: false });
-    
     container.appendChild(img);
     loadedDrawingIds.add(item.id);
-}
-
-function deleteDrawing(id) {
-    let items = JSON.parse(localStorage.getItem('pondItems') || '[]');
-    items = items.filter(item => item.id !== id);
-    localStorage.setItem('pondItems', JSON.stringify(items));
-    
-    const img = document.querySelector(`img[data-id="${id}"]`);
-    if (img) {
-        img.style.transition = 'opacity 0.3s, transform 0.3s';
-        img.style.opacity = '0';
-        img.style.transform = 'translate(-50%, -50%) scale(0)';
-        setTimeout(() => {
-            img.remove();
-        }, 300);
-    }
-    
-    loadedDrawingIds.delete(id);
 }
 
 // LOAD POND ITEMS
