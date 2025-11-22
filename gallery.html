@@ -24,9 +24,7 @@ body {
     padding: 20px;
     text-align: center;
     min-height: 100vh;
-    overflow: auto !important; /* ADDED: Enable scrolling */
-    position: relative !important; /* ADDED: Remove fixed positioning */
-    height: auto !important; /* ADDED: Allow natural height */
+    overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 .header {
@@ -74,8 +72,7 @@ h1 {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
-    overflow-y: visible; /* ADDED: Ensure content can overflow */
-    -webkit-overflow-scrolling: touch; /* ADDED: Smooth scrolling on iOS */
+    overflow-y: visible;
 }
 
 .gallery-item {
@@ -185,20 +182,23 @@ h1 {
     }
 }
 
-/* ADDED: Ensure scrolling works on all mobile browsers */
-html, body {
-    overflow-x: hidden;
+/* Ensure proper scrolling */
+html {
+    overflow-y: scroll;
 }
 
-.gallery-page {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+body {
+    overflow-y: auto;
+}
+
+.main-content {
+    width: 100%;
+    max-width: 100%;
 }
 </style>
 </head>
 
-<body class="gallery-page"> <!-- ADDED: Class for gallery page -->
+<body>
     <div class="header">
         <h1>Gallery of Lost & Found</h1>
         <div class="count" id="drawingCount">Loading...</div>
