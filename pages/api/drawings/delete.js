@@ -1,11 +1,20 @@
 import { createClient } from '@vercel/kv';
 
-const kv = createClient({
-  url: process.env.KV_REST_API_URL,
-  token: process.env.KV_REST_API_TOKEN,
-});
+let kv;
+try {
+  kv = createClient({
+    url: process.env.KV_REST_API_URL,
+    token: process.env.KV_REST_API_TOKEN,
+  });
+} catch (error) {
+  console.error('Failed to create KV client:', error);
+}
 
 export default async function handler(req, res) {
+  if (!kv) {
+    return res.status(500).json({ error: 'Database not available' });
+  }
+
   if (req.method === 'POST') {
     try {
       const { id } = req.body;
