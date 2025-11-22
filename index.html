@@ -37,20 +37,21 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    gap: 80px;
+    gap: 60px;
     padding: 30px;
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
     min-height: 70vh;
 }
 
-/* Pond Section - Larger for desktop */
+/* Pond Section - Centered and larger */
 .pond-section {
-    flex: 1;
-    max-width: 800px;
+    flex: 2;
+    max-width: 700px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
 }
 
 .pond-wrapper {
@@ -60,7 +61,7 @@ h1 {
 
 .pond {
     width: 100%;
-    max-width: 800px;
+    max-width: 700px;
     animation: float 4s ease-in-out infinite;
     transform-origin: center;
 }
@@ -98,16 +99,17 @@ h1 {
 
 /* Tools Section - Desktop */
 .tools-section {
-    width: 320px;
+    width: 280px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 25px;
-    margin-top: 80px;
+    margin-top: 50px;
+    flex-shrink: 0;
 }
 
 .tool-title {
-    font-size: 24px;
+    font-size: 22px;
     color: #1f4d2d;
     margin: 0;
     text-align: center;
@@ -116,22 +118,22 @@ h1 {
 
 .tools-container {
     display: flex;
-    gap: 25px;
+    gap: 20px;
     align-items: flex-start;
 }
 
 .color-palette {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
-    height: 220px;
+    height: 200px;
     justify-content: space-between;
 }
 
 .color-dot {
-    width: 35px;
-    height: 35px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     cursor: pointer;
     border: 2px solid black;
@@ -152,12 +154,12 @@ h1 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
 }
 
 #draw-area {
-    width: 220px;
-    height: 220px;
+    width: 200px;
+    height: 200px;
     background: #FFF9F0;
     border: 2px dashed #444;
     cursor: crosshair;
@@ -167,7 +169,7 @@ h1 {
 .button-group {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     width: 100%;
     align-items: center;
 }
@@ -175,13 +177,13 @@ h1 {
 button {
     cursor: pointer;
     font-family: "Delius", cursive;
-    font-size: 16px;
-    padding: 10px 20px;
+    font-size: 14px;
+    padding: 8px 16px;
     border: 2px solid #1f4d2d;
     border-radius: 8px;
     background: #FFF9F0;
     transition: transform 0.2s, background 0.3s;
-    width: 180px;
+    width: 160px;
 }
 
 button:hover {
@@ -202,8 +204,8 @@ button:hover {
     position: fixed;
     bottom: 30px;
     right: 30px;
-    padding: 12px 24px;
-    font-size: 16px;
+    padding: 10px 20px;
+    font-size: 15px;
     text-decoration: none;
     border: 2px solid #1f4d2d;
     border-radius: 8px;
@@ -211,7 +213,7 @@ button:hover {
     color: #1f4d2d;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     transition: transform 0.2s, background 0.3s;
 }
 
@@ -245,6 +247,7 @@ button:hover {
         max-width: 100%;
         order: 1;
         margin-bottom: 20px;
+        flex: none;
     }
     
     .pond {
@@ -296,11 +299,9 @@ button:hover {
         background: #e8f4ea;
     }
     
+    /* Hide desktop gallery link on mobile */
     .gallery-link {
-        position: static;
-        margin: 0;
-        width: 100%;
-        justify-content: center;
+        display: none;
     }
     
     /* Show tools when mobile main button is clicked */
@@ -322,6 +323,25 @@ button:hover {
             max-width: 280px;
             margin: 20px auto;
             order: 2;
+        }
+        
+        /* Single gallery button in mobile buttons */
+        .mobile-gallery-button {
+            font-family: "Delius", cursive;
+            font-size: 16px;
+            padding: 14px 20px;
+            border: 2px solid #1f4d2d;
+            border-radius: 10px;
+            background: #FFF9F0;
+            color: #1f4d2d;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
         }
     }
     
@@ -358,6 +378,11 @@ button:hover {
     .tool-title {
         font-size: 20px;
     }
+    
+    /* Hide pond when in drawing mode on mobile */
+    .pond-section.hidden {
+        display: none;
+    }
 }
 
 @media (max-width: 480px) {
@@ -365,7 +390,7 @@ button:hover {
         font-size: 28px;
     }
     
-    .mobile-main-button {
+    .mobile-main-button, .mobile-gallery-button {
         font-size: 15px;
         padding: 12px 18px;
     }
@@ -423,8 +448,8 @@ button:hover {
 
 <!-- Main Content -->
 <div class="main-content">
-    <!-- Left: Pond -->
-    <div class="pond-section">
+    <!-- Left: Pond (centered and dominant) -->
+    <div class="pond-section" id="pondSection">
         <div class="pond-wrapper">
             <img src="pond.png" class="pond" alt="Pond">
             <div id="pondDrawings" class="drawing-container"></div>
@@ -432,18 +457,18 @@ button:hover {
     </div>
 
     <!-- Mobile Buttons (Hidden on Desktop) -->
-    <div class="mobile-buttons">
-        <button class="mobile-main-button" onclick="showTools()">
+    <div class="mobile-buttons" id="mobileButtons">
+        <button class="mobile-main-button" onclick="showDrawingTools()">
             🎨 Drop Something Into Our Pond
         </button>
-        <a href="gallery.html" class="mobile-main-button">
+        <a href="gallery.html" class="mobile-gallery-button">
             🖼️ Gallery of Lost & Found
         </a>
     </div>
 
     <!-- Right: Tools -->
-    <div class="tools-section">
-        <button class="close-tools" onclick="hideTools()">×</button>
+    <div class="tools-section" id="toolsSection">
+        <button class="close-tools" onclick="hideDrawingTools()">×</button>
         <h2 class="tool-title">Drop Something Into<br>Our Pond?</h2>
         
         <div class="tools-container">
@@ -484,8 +509,8 @@ function setupCanvas() {
         canvas.height = 250;
     } else {
         // Desktop
-        canvas.width = 220;
-        canvas.height = 220;
+        canvas.width = 200;
+        canvas.height = 200;
     }
     
     // Set initial canvas background
@@ -609,22 +634,33 @@ async function addToPond() {
     const imgData = canvas.toDataURL();
     
     let items = JSON.parse(localStorage.getItem('pondItems') || '[]');
+    
+    // Calculate positions within the light blue pond area (adjust these values based on your pond image)
+    // These are approximate percentages - adjust based on your actual pond.png dimensions
+    const pondArea = {
+        left: 15,   // 15% from left
+        right: 85,  // 85% from left
+        top: 20,    // 20% from top
+        bottom: 80  // 80% from top
+    };
+    
     items.push({
         img: imgData,
-        x: Math.random() * 80 + 10, 
-        y: Math.random() * 60 + 20,
+        x: Math.random() * (pondArea.right - pondArea.left) + pondArea.left, 
+        y: Math.random() * (pondArea.bottom - pondArea.top) + pondArea.top,
         timestamp: Date.now()
     });
     localStorage.setItem('pondItems', JSON.stringify(items));
     
     alert("Added to Pond!");
     clearCanvas();
-    loadPondItems();
     
-    // On mobile, hide tools after adding
+    // On mobile, hide tools and show pond after adding
     if (window.innerWidth <= 768) {
-        hideTools();
+        hideDrawingTools();
     }
+    
+    loadPondItems();
 }
 
 // LOAD POND ITEMS
@@ -646,20 +682,24 @@ async function loadPondItems() {
 }
 
 // Mobile functionality
-function showTools() {
-    const toolsSection = document.querySelector('.tools-section');
-    const mobileButtons = document.querySelector('.mobile-buttons');
+function showDrawingTools() {
+    const toolsSection = document.getElementById('toolsSection');
+    const mobileButtons = document.getElementById('mobileButtons');
+    const pondSection = document.getElementById('pondSection');
     
     toolsSection.classList.add('mobile-visible');
     mobileButtons.classList.add('hidden');
+    pondSection.classList.add('hidden');
 }
 
-function hideTools() {
-    const toolsSection = document.querySelector('.tools-section');
-    const mobileButtons = document.querySelector('.mobile-buttons');
+function hideDrawingTools() {
+    const toolsSection = document.getElementById('toolsSection');
+    const mobileButtons = document.getElementById('mobileButtons');
+    const pondSection = document.getElementById('pondSection');
     
     toolsSection.classList.remove('mobile-visible');
     mobileButtons.classList.remove('hidden');
+    pondSection.classList.remove('hidden');
 }
 
 // Handle window resize
