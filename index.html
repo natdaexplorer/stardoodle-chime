@@ -16,7 +16,7 @@ body {
     margin: 0;
     padding: 0;
     text-align: center;
-    overflow-x: hidden;
+    overflow: hidden;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -24,7 +24,7 @@ body {
 
 /* Header */
 .header {
-    padding: 20px 0;
+    padding: 15px 0;
     flex-shrink: 0;
 }
 
@@ -81,11 +81,11 @@ h1 {
 
 .drawing-container img {
     position: absolute;
-    width: 120px;
+    width: 80px;
     border: 2px solid black;
     border-radius: 12px;
     transform: translate(-50%, -50%) scale(0);
-    animation: pop 0.4s ease-out forwards, float-item 4s ease-in-out infinite;
+    animation: pop 0.6s ease-out forwards, float-item 4s ease-in-out infinite;
 }
 
 @keyframes pop {
@@ -97,7 +97,7 @@ h1 {
         transform: translate(-50%, -50%) scale(1) translateY(0);
     }
     50% {
-        transform: translate(-50%, -50%) scale(1) translateY(-6px);
+        transform: translate(-50%, -50%) scale(1) translateY(-8px);
     }
 }
 
@@ -254,15 +254,16 @@ button:hover {
         display: flex;
         flex-direction: column;
         height: 100vh;
+        overflow: hidden;
     }
     
     .header {
-        padding: 15px 0;
+        padding: 10px 0;
         flex-shrink: 0;
     }
     
     h1 {
-        font-size: 32px;
+        font-size: 28px;
     }
     
     .main-content {
@@ -273,6 +274,7 @@ button:hover {
         flex: 1;
         width: 100%;
         position: relative;
+        overflow: hidden;
     }
     
     .pond-section {
@@ -293,15 +295,15 @@ button:hover {
     }
     
     .pond {
-        max-width: 100%;
+        max-width: 90%;
         width: auto;
         height: auto;
-        max-height: 60vh;
+        max-height: 50vh;
         object-fit: contain;
     }
     
     .drawing-container img {
-        width: 100px;
+        width: 60px;
     }
     
     .tools-section {
@@ -310,8 +312,6 @@ button:hover {
         display: none;
         background: rgba(255, 255, 255, 0.98);
         padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         margin: 0;
         position: absolute;
         top: 0;
@@ -326,24 +326,24 @@ button:hover {
     .mobile-buttons-container {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
         width: 100%;
-        max-width: 320px;
-        margin: 0 auto 20px auto;
+        max-width: 300px;
+        margin: 0 auto;
         flex-shrink: 0;
-        padding: 0 20px;
+        padding: 0 20px 20px 20px;
         position: absolute;
-        bottom: 20px;
+        bottom: 0;
         left: 50%;
         transform: translateX(-50%);
     }
     
     .mobile-main-button {
         font-family: "Delius", cursive;
-        font-size: 16px;
-        padding: 14px 20px;
+        font-size: 14px;
+        padding: 12px 16px;
         border: 2px solid #1f4d2d;
-        border-radius: 10px;
+        border-radius: 8px;
         background: #FFF9F0;
         color: #1f4d2d;
         cursor: pointer;
@@ -352,7 +352,7 @@ button:hover {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 6px;
         width: 100%;
         white-space: nowrap;
         overflow: hidden;
@@ -385,7 +385,7 @@ button:hover {
     /* Adjust tools for mobile */
     .tools-container {
         flex-direction: column;
-        gap: 25px;
+        gap: 20px;
         align-items: center;
         width: 100%;
     }
@@ -393,23 +393,23 @@ button:hover {
     .color-palette {
         flex-direction: row;
         height: auto;
-        gap: 15px;
+        gap: 12px;
         justify-content: center;
     }
     
     #draw-area {
-        width: 250px;
-        height: 250px;
+        width: 220px;
+        height: 220px;
     }
     
     .button-group {
-        width: 250px;
+        width: 220px;
     }
     
     button {
-        width: 180px;
-        font-size: 15px;
-        padding: 10px 16px;
+        width: 160px;
+        font-size: 14px;
+        padding: 8px 14px;
     }
     
     .tool-title {
@@ -420,30 +420,35 @@ button:hover {
 
 @media (max-width: 480px) {
     h1 {
-        font-size: 28px;
+        font-size: 24px;
     }
     
     .mobile-main-button {
-        font-size: 15px;
-        padding: 12px 18px;
+        font-size: 13px;
+        padding: 10px 14px;
     }
     
     #draw-area {
-        width: 220px;
-        height: 220px;
+        width: 200px;
+        height: 200px;
     }
     
     .color-palette {
-        gap: 12px;
+        gap: 10px;
     }
     
     .color-dot {
-        width: 28px;
-        height: 28px;
+        width: 25px;
+        height: 25px;
     }
     
     .mobile-buttons-container {
         max-width: 280px;
+    }
+    
+    .pond {
+        max-width: 95%;
+        max-height: 45vh;
     }
 }
 
@@ -513,7 +518,7 @@ button:hover {
     <!-- Right: Tools -->
     <div class="tools-section" id="toolsSection">
         <button class="close-tools" onclick="hideDrawingTools()">×</button>
-        <h2 class="tool-title" id="toolTitle">Drop Something Into<br>Our Pond?</h2>
+        <h2 class="tool-title" id="toolTitle">Drop Something Into Our Pond?</h2>
         
         <div class="tools-container">
             <!-- Colors -->
@@ -549,8 +554,8 @@ const ctx = canvas.getContext("2d");
 function setupCanvas() {
     if (window.innerWidth <= 768) {
         // Mobile
-        canvas.width = 250;
-        canvas.height = 250;
+        canvas.width = 220;
+        canvas.height = 220;
     } else {
         // Desktop
         canvas.width = 200;
@@ -693,35 +698,24 @@ function isCanvasBlank() {
 // Type text with pauses
 function typeWithPauses() {
     const toolTitle = document.getElementById('toolTitle');
-    const messages = [
-        "That's not a drawing.",
-        "Try again?",
-        "Drop Something Into Our Pond?"
-    ];
+    const message = "That's not a drawing. Try again?";
     
-    let messageIndex = 0;
+    toolTitle.innerHTML = '';
     
-    function typeNextMessage() {
-        if (messageIndex < messages.length) {
-            const message = messages[messageIndex];
-            toolTitle.innerHTML = '';
-            
-            let i = 0;
-            function type() {
-                if (i < message.length) {
-                    toolTitle.innerHTML += message.charAt(i);
-                    i++;
-                    setTimeout(type, 100); // Slower typing speed
-                } else {
-                    messageIndex++;
-                    setTimeout(typeNextMessage, 2000); // Pause 2 seconds between messages
-                }
-            }
-            type();
+    let i = 0;
+    function type() {
+        if (i < message.length) {
+            toolTitle.innerHTML += message.charAt(i);
+            i++;
+            setTimeout(type, 80); // Faster typing speed
+        } else {
+            // After typing complete, wait 2 seconds then show original title
+            setTimeout(() => {
+                toolTitle.innerHTML = "Drop Something Into Our Pond?";
+            }, 2000);
         }
     }
-    
-    typeNextMessage();
+    type();
 }
 
 // ADD TO POND
@@ -732,7 +726,19 @@ async function addToPond() {
         return;
     }
     
-    const imgData = canvas.toDataURL();
+    // Create a temporary canvas to extract only the drawing (without background)
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    // Fill with transparent background
+    tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+    
+    // Draw only the user's drawing (not the white background)
+    tempCtx.drawImage(canvas, 0, 0);
+    
+    const imgData = tempCanvas.toDataURL('image/png');
     
     let items = JSON.parse(localStorage.getItem('pondItems') || '[]');
     
@@ -777,7 +783,7 @@ async function loadPondItems() {
             img.style.top = item.y + "%";
             img.style.animationDelay = `${(i % 5) * 0.2}s`;
             container.appendChild(img);
-        }, i * 250);
+        }, i * 300); // Slightly longer delay for better pop-up effect
     });
 }
 
