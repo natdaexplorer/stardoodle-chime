@@ -1,18 +1,24 @@
-// Error handling for API failures
-async function checkAPIHealth() {
-  try {
-    const response = await fetch('/api/drawings');
-    if (!response.ok) {
-      console.error('API is not responding properly');
-      // Fallback to localStorage if API fails
-      return false;
-    }
-    return true;
-  } catch (error) {
-    console.error('API connection failed:', error);
-    return false;
+// Temporary: Always show the page even if API fails
+window.addEventListener('load', function() {
+  // Force show the pond section
+  const pondSection = document.getElementById('pondSection');
+  const mobileButtons = document.getElementById('mobileButtons');
+  
+  if (pondSection) {
+    pondSection.style.display = 'block';
   }
-}
+  if (mobileButtons) {
+    mobileButtons.style.display = 'block';
+  }
+  
+  // Load initial drawings from localStorage as fallback
+  setTimeout(() => {
+    const items = JSON.parse(localStorage.getItem('pondItems') || '[]');
+    if (items.length > 0) {
+      loadPondItems();
+    }
+  }, 1000);
+});
 
 // Modify your fetchDrawings function to have a fallback:
 async function fetchDrawings() {
