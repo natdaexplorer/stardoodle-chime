@@ -35,7 +35,7 @@ h1 {
     font-weight: bold;
 }
 
-.subtitle {
+.count {
     font-size: 18px;
     color: #1f4d2d;
     margin: 0 0 30px 0;
@@ -92,7 +92,6 @@ h1 {
     width: 100%;
     height: 120px;
     object-fit: contain;
-    margin-bottom: 10px;
     transition: transform 0.3s ease;
 }
 
@@ -128,7 +127,7 @@ h1 {
         font-size: 28px;
     }
     
-    .subtitle {
+    .count {
         font-size: 16px;
     }
     
@@ -167,7 +166,7 @@ h1 {
 <body>
     <div class="header">
         <h1>Gallery of Lost & Found</h1>
-        <div class="subtitle">All the treasures that found their way to our pond</div>
+        <div class="count" id="drawingCount">0 drawings</div>
         <a href="index.html" class="back-link">← Back to Pond</a>
     </div>
 
@@ -178,7 +177,11 @@ h1 {
     <script>
     function loadGalleryItems() {
         const container = document.getElementById('galleryContainer');
+        const countElement = document.getElementById('drawingCount');
         const items = JSON.parse(localStorage.getItem('pondItems') || '[]');
+        
+        // Update count
+        countElement.textContent = `${items.length} drawing${items.length !== 1 ? 's' : ''}`;
         
         // Clear container
         container.innerHTML = '';
@@ -251,7 +254,7 @@ h1 {
             galleryItem.style.transform = 'scale(0.8)';
             setTimeout(() => {
                 galleryItem.remove();
-                // Reload gallery to ensure consistency
+                // Update the count and reload gallery
                 loadGalleryItems();
             }, 300);
         }
@@ -261,4 +264,8 @@ h1 {
     document.addEventListener('DOMContentLoaded', loadGalleryItems);
 
     // Update gallery if items change while page is open
-    window.addEventListener('storage', loadGalleryItems
+    window.addEventListener('storage', loadGalleryItems);
+    window.addEventListener('focus', loadGalleryItems);
+    </script>
+</body>
+</html>
