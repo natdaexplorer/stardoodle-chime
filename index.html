@@ -76,13 +76,13 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
+    animation: float 4s ease-in-out infinite;
+    transform-origin: center;
 }
 
 .pond {
     width: 100%;
     max-width: 700px;
-    animation: float 4s ease-in-out infinite;
-    transform-origin: center;
     pointer-events: none;
 }
 
@@ -108,7 +108,7 @@ h1 {
     position: absolute;
     width: 60px;
     transform: translate(-50%, -50%) scale(0);
-    animation: pop 1.5s ease-out forwards, float-with-pond 4s ease-in-out infinite;
+    animation: pop 1.5s ease-out forwards;
     pointer-events: auto;
     z-index: 2;
 }
@@ -129,15 +129,6 @@ h1 {
     100% {
         transform: translate(-50%, -50%) scale(1);
         opacity: 1;
-    }
-}
-
-@keyframes float-with-pond {
-    0%, 100% {
-        transform: translate(-50%, -50%) translateY(0);
-    }
-    50% {
-        transform: translate(-50%, -50%) translateY(-10px);
     }
 }
 
