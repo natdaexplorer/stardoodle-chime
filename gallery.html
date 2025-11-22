@@ -24,11 +24,12 @@ body {
     padding: 20px;
     text-align: center;
     min-height: 100vh;
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow-x: hidden;
 }
 
 .header {
     padding: 20px 0;
+    position: relative;
 }
 
 h1 {
@@ -65,6 +66,62 @@ h1 {
     transform: translateY(-2px);
 }
 
+/* Pagination Controls - Mobile */
+.pagination-controls {
+    display: none; /* Hidden on desktop by default */
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    margin: 20px 0;
+    padding: 0 20px;
+}
+
+.pagination-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #1f4d2d;
+    cursor: pointer;
+    padding: 10px 15px;
+    transition: all 0.3s;
+    opacity: 0.7;
+}
+
+.pagination-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.pagination-info {
+    font-size: 16px;
+    color: #1f4d2d;
+    font-weight: bold;
+}
+
+/* Triangle buttons */
+.triangle-left, .triangle-right {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    cursor: pointer;
+}
+
+.triangle-left {
+    border-width: 15px 20px 15px 0;
+    border-color: transparent #1f4d2d transparent transparent;
+}
+
+.triangle-right {
+    border-width: 15px 0 15px 20px;
+    border-color: transparent transparent transparent #1f4d2d;
+}
+
 .gallery-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -72,7 +129,6 @@ h1 {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
-    overflow-y: visible;
 }
 
 .gallery-item {
@@ -138,7 +194,18 @@ h1 {
     }
 }
 
-/* Mobile Styles */
+/* Desktop - No pagination */
+@media (min-width: 769px) {
+    .pagination-controls {
+        display: none !important;
+    }
+    
+    .gallery-container {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+/* Mobile Styles with Pagination */
 @media (max-width: 768px) {
     body {
         padding: 10px;
@@ -152,18 +219,22 @@ h1 {
         font-size: 16px;
     }
     
+    .pagination-controls {
+        display: flex; /* Show pagination on mobile */
+    }
+    
     .gallery-container {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 15px;
+        grid-template-columns: repeat(3, 1fr); /* 3 columns for 12 items (3x4 grid) */
+        gap: 10px;
         padding: 10px;
     }
     
     .gallery-item {
-        padding: 10px;
+        padding: 8px;
     }
     
     .gallery-item img {
-        height: 100px;
+        height: 80px;
     }
 }
 
@@ -173,12 +244,24 @@ h1 {
     }
     
     .gallery-container {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: 10px;
+        grid-template-columns: repeat(3, 1fr); /* Keep 3 columns */
+        gap: 8px;
     }
     
     .gallery-item img {
-        height: 80px;
+        height: 70px;
+    }
+    
+    .pagination-controls {
+        gap: 20px;
+    }
+    
+    .triangle-left, .triangle-right {
+        border-width: 12px 16px 12px 0;
+    }
+    
+    .triangle-right {
+        border-width: 12px 0 12px 16px;
     }
 }
 
@@ -190,11 +273,6 @@ html {
 body {
     overflow-y: auto;
 }
-
-.main-content {
-    width: 100%;
-    max-width: 100%;
-}
 </style>
 </head>
 
@@ -203,6 +281,17 @@ body {
         <h1>Gallery of Lost & Found</h1>
         <div class="count" id="drawingCount">Loading...</div>
         <a href="index.html" class="back-link">← Back to Pond</a>
+        
+        <!-- Pagination Controls - Positioned beneath Back button -->
+        <div class="pagination-controls">
+            <button class="pagination-btn" id="prevPage" disabled>
+                <div class="triangle-left"></div>
+            </button>
+            <div class="pagination-info" id="pageInfo">Page 1</div>
+            <button class="pagination-btn" id="nextPage" disabled>
+                <div class="triangle-right"></div>
+            </button>
+        </div>
     </div>
 
     <div class="gallery-container" id="galleryContainer">
@@ -228,6 +317,9 @@ body {
     // Image Cache for Gallery
     const galleryImageCache = new Map();
     let loadedDrawingIds = new Set();
+    let allDrawings = [];
+    let currentPage = 1;
+    const MOBILE_ITEMS_PER_PAGE = 12;
 
     function loadGalleryItems() {
         const container = document.getElementById('galleryContainer');
@@ -235,15 +327,15 @@ body {
         
         try {
             db.collection('drawings').onSnapshot((snapshot) => {
-                const items = [];
+                allDrawings = [];
                 snapshot.forEach(doc => {
-                    items.push(doc.data());
+                    allDrawings.push(doc.data());
                 });
                 
                 // Update count immediately
-                countElement.textContent = `${items.length} drawing${items.length !== 1 ? 's' : ''}`;
+                countElement.textContent = `${allDrawings.length} drawing${allDrawings.length !== 1 ? 's' : ''}`;
                 
-                if (items.length === 0) {
+                if (allDrawings.length === 0) {
                     container.innerHTML = `
                         <div class="empty-gallery">
                             <h2>The Pond is Empty</h2>
@@ -253,12 +345,10 @@ body {
                     return;
                 }
                 
-                // Clear container but keep loading message briefly
-                container.innerHTML = '<div class="loading-gallery">🔄 Loading drawings...</div>';
-                loadedDrawingIds.clear();
-                
-                // LAZY LOAD GALLERY ITEMS
-                loadGalleryItemsLazily(items);
+                // Reset to first page
+                currentPage = 1;
+                updatePaginationControls();
+                loadCurrentPage();
                 
             }, (error) => {
                 console.error('Error loading gallery:', error);
@@ -274,42 +364,58 @@ body {
         }
     }
 
-    function loadGalleryItemsLazily(drawings) {
+    function loadCurrentPage() {
         const container = document.getElementById('galleryContainer');
-        const BATCH_SIZE = 4; // Load 4 images at a time
-        const DELAY = 200; // 200ms between batches
+        const isMobile = window.innerWidth <= 768;
         
-        let currentIndex = 0;
-        
-        function loadNextBatch() {
-            const batch = drawings.slice(currentIndex, currentIndex + BATCH_SIZE);
+        if (isMobile) {
+            // Mobile: Show only current page items
+            const startIndex = (currentPage - 1) * MOBILE_ITEMS_PER_PAGE;
+            const endIndex = startIndex + MOBILE_ITEMS_PER_PAGE;
+            const pageDrawings = allDrawings.slice(startIndex, endIndex);
             
-            batch.forEach((item, batchIndex) => {
-                if (!loadedDrawingIds.has(item.id)) {
-                    // Add slight stagger within batch for smooth animation
-                    setTimeout(() => {
-                        addGalleryItem(item, currentIndex + batchIndex);
-                    }, batchIndex * 50);
-                }
-            });
+            container.innerHTML = '';
+            loadedDrawingIds.clear();
             
-            currentIndex += BATCH_SIZE;
-            
-            if (currentIndex < drawings.length) {
-                setTimeout(loadNextBatch, DELAY);
-            } else {
-                // All items loaded
-                setTimeout(() => {
-                    if (container.querySelector('.loading-gallery')) {
-                        container.querySelector('.loading-gallery').remove();
-                    }
-                }, 500);
+            if (pageDrawings.length === 0) {
+                container.innerHTML = '<div class="empty-gallery">No drawings on this page</div>';
+                return;
             }
+            
+            pageDrawings.forEach((item, index) => {
+                addGalleryItem(item, index);
+            });
+        } else {
+            // Desktop: Show all drawings (no pagination)
+            container.innerHTML = '';
+            loadedDrawingIds.clear();
+            
+            allDrawings.forEach((item, index) => {
+                addGalleryItem(item, index);
+            });
+        }
+    }
+
+    function updatePaginationControls() {
+        const isMobile = window.innerWidth <= 768;
+        const prevBtn = document.getElementById('prevPage');
+        const nextBtn = document.getElementById('nextPage');
+        const pageInfo = document.getElementById('pageInfo');
+        
+        if (!isMobile) {
+            // Hide pagination info on desktop
+            pageInfo.textContent = '';
+            return;
         }
         
-        // Clear loading message and start lazy loading
-        container.innerHTML = '';
-        loadNextBatch();
+        const totalPages = Math.ceil(allDrawings.length / MOBILE_ITEMS_PER_PAGE);
+        
+        // Update page info
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        
+        // Update button states
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === totalPages || totalPages === 0;
     }
 
     function addGalleryItem(item, index) {
@@ -376,6 +482,30 @@ body {
             console.error('Error deleting drawing:', error);
         }
     }
+
+    // Pagination event handlers
+    document.getElementById('prevPage').addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            loadCurrentPage();
+            updatePaginationControls();
+        }
+    });
+
+    document.getElementById('nextPage').addEventListener('click', () => {
+        const totalPages = Math.ceil(allDrawings.length / MOBILE_ITEMS_PER_PAGE);
+        if (currentPage < totalPages) {
+            currentPage++;
+            loadCurrentPage();
+            updatePaginationControls();
+        }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        updatePaginationControls();
+        loadCurrentPage();
+    });
 
     // Load gallery when page loads
     document.addEventListener('DOMContentLoaded', loadGalleryItems);
